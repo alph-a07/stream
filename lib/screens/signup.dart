@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../database/auth_methods.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_input.dart';
+import 'home.dart';
 
 class Signup extends StatefulWidget {
   const Signup({super.key});
@@ -16,6 +18,22 @@ class _SignupState extends State<Signup> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final AuthMethods _authMethods = AuthMethods();
+  bool _isLoading = false;
+
+  void signUpUser() async {
+    setState(() {
+      _isLoading = true;
+    });
+    bool res = await _authMethods.signUpUser(_emailController.text,
+        _usernameController.text, _passwordController.text, context);
+    setState(() {
+      _isLoading = false;
+    });
+    if (res) {
+      Navigator.pushReplacementNamed(context, Home.route);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +89,7 @@ class _SignupState extends State<Signup> {
               const SizedBox(
                 height: 20,
               ),
-              CustomButton(onTap: () {}, text: "Sign Up")
+              CustomButton(onTap: signUpUser, text: "Sign Up")
             ],
           ),
         ),

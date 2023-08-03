@@ -1,9 +1,9 @@
-class User {
+class UserModel {
   final String uid;
   final String username;
   final String email;
 
-  User({
+  UserModel({
     required this.uid,
     required this.username,
     required this.email,
@@ -19,8 +19,8 @@ class User {
   }
 
   // Converts map data in User object
-  factory User.fromMap(Map<String, dynamic> map) {
-    return User(
+  factory UserModel.fromMap(Map<String, dynamic> map) {
+    return UserModel(
       uid: map['uid'] ?? '',
       username: map['username'] ?? '',
       email: map['email'] ?? '',
