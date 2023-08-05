@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:stream/database/auth_methods.dart';
+import 'package:stream/providers/user_provider.dart';
 import 'package:stream/widgets/custom_button.dart';
 import 'package:stream/widgets/custom_input.dart';
+
+import 'home.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -14,6 +19,26 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final AuthMethods _authMethods = AuthMethods();
+  bool _isLoading = false;
+
+  loginUser() async {
+    setState(() {
+      _isLoading = true;
+    });
+    bool res = await _authMethods.loginUser(
+      context,
+      _emailController.text,
+      _passwordController.text,
+    );
+    setState(() {
+      _isLoading = false;
+    });
+    if (res) {
+      Navigator.pushReplacementNamed(context, Home.route);
+      print(Provider.of<UserProvider>(context).user.email);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +81,7 @@ class _LoginState extends State<Login> {
               const SizedBox(
                 height: 20,
               ),
-              CustomButton(onTap: () {}, text: "Log In")
+              CustomButton(onTap: loginUser, text: "Log In")
             ],
           ),
         ),
