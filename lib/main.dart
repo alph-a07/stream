@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:stream/models/user.dart';
 import 'package:stream/providers/user_provider.dart';
 import 'package:stream/resources/colors.dart';
 import 'package:stream/screens/home.dart';
@@ -11,32 +12,52 @@ import 'package:stream/screens/signup.dart';
 import 'package:stream/widgets/loading_indicator.dart';
 
 import 'database/auth_methods.dart';
-import 'models/user.dart';
 
 void main() async {
+  // Make sure Flutter is initialized before running the app
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Firebase
   await Firebase.initializeApp();
-  runApp(const MyApp());
+
+  // Run the app by wrapping it with MultiProvider
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
+// Main app class
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Wrap the app with MultiProvider to allow access to the UserProvider throughout the app
     return MultiProvider(
       providers: [ChangeNotifierProvider(create: (_) => UserProvider())],
+      // Create a MaterialApp to define the app's title, theme, and routes
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Stream',
+
+        // Define the app's theme
         theme: ThemeData.dark(useMaterial3: true).copyWith(
-            scaffoldBackgroundColor: backgroundColor,
-            appBarTheme: AppBarTheme.of(context).copyWith(
-                backgroundColor: backgroundColor,
-                elevation: 0,
-                titleTextStyle:
-                    const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-                iconTheme: const IconThemeData(color: primaryColor))),
+          scaffoldBackgroundColor: backgroundColor,
+          appBarTheme: AppBarTheme.of(context).copyWith(
+            backgroundColor: backgroundColor,
+            elevation: 0,
+            titleTextStyle:
+                const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+            iconTheme: const IconThemeData(color: primaryColor),
+          ),
+        ),
+
+        // Define the routes for different screens
         routes: {
           Onboarding.route: (context) => const Onboarding(),
           // Route for the onboarding screen
@@ -47,8 +68,9 @@ class MyApp extends StatelessWidget {
           Home.route: (context) => const Home(),
           // Route for the home screen
         },
+
+        // Define the home screen using FutureBuilder to handle async operations
         home: FutureBuilder(
-          // A FutureBuilder widget to fetch the current user's data
           future: AuthMethods()
               .getCurrentUser(
             FirebaseAuth.instance.currentUser != null
@@ -56,33 +78,29 @@ class MyApp extends StatelessWidget {
                 : null,
           )
               .then((value) {
-            print('Value : $value');
-
-            // Once the user data is fetched, this function is called
             if (value != null) {
-              // If the user data is not null, set the user in the UserProvider using the fetched data
+              // Set the user using UserProvider if user data is available
               Provider.of<UserProvider>(context, listen: false).setUser(
                 UserModel.fromMap(value),
               );
-
-              print('Email : ${Provider.of<UserProvider>(context).user.email}');
             }
-            print('Email : ${Provider.of<UserProvider>(context).user.email}');
-            return value; // Return the fetched user data to the FutureBuilder
+            return value;
           }),
-          builder: (context, snapshot) {
-            // The builder function is called when the Future completes or updates
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const LoadingIndicator(); // While waiting for the future to complete, display a loading indicator
-            }
 
-            print('Snapshot : ${snapshot.data}');
+          // Build the home screen based on the FutureBuilder snapshot
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              // Show a loading indicator while waiting for the data
+              return const LoadingIndicator();
+            }
 
             if (snapshot.hasData) {
-              return const Home(); // If the snapshot has data (user data was fetched successfully), show the home screen
+              // If user data is available, show the Home screen
+              return const Home();
             }
 
-            return const Onboarding(); // If no user data was fetched, show the onboarding screen
+            // If no user data is available, show the Onboarding screen
+            return const Onboarding();
           },
         ),
       ),
