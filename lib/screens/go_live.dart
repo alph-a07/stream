@@ -3,8 +3,10 @@ import 'dart:typed_data';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 
+import '../database/firebase_methods.dart';
 import '../resources/colors.dart';
 import '../resources/methods.dart';
+import '../screens/stream.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_input.dart';
 
@@ -26,20 +28,21 @@ class _GoLiveState extends State<GoLive> {
   }
 
   goLiveStream() async {
-    // String channelId = await FirestoreMethods()
-    //     .startLiveStream(context, _titleController.text, image);
-    //
-    // if (channelId.isNotEmpty) {
-    //   showSnackBar(context, 'Livestream has started successfully!');
-    //   Navigator.of(context).push(
-    //     MaterialPageRoute(
-    //       builder: (context) => BroadcastScreen(
-    //         isBroadcaster: true,
-    //         channelId: channelId,
-    //       ),
-    //     ),
-    //   );
-    // }
+    String channelId = await FirestoreMethods().startLiveStream(context, _titleController.text, image);
+
+    if (channelId.isNotEmpty) {
+      showSnackBar(context, 'You are live!');
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => Stream(
+            isBroadcaster: true,
+            channelId: channelId,
+          ),
+        ),
+      );
+    } else {
+      showSnackBar(context, 'error');
+    }
   }
 
   @override
