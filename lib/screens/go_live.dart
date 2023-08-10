@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 
-import '../database/firebase_methods.dart';
+import '../database/firestore_methods.dart';
 import '../resources/colors.dart';
 import '../resources/methods.dart';
 import '../screens/stream.dart';
@@ -31,7 +31,7 @@ class _GoLiveState extends State<GoLive> {
     String channelId = await FirestoreMethods().startLiveStream(context, _titleController.text, image);
 
     if (channelId.isNotEmpty) {
-      showSnackBar(context, 'You are live!');
+      showSnackBar(context, 'You are now live!');
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => Stream(
@@ -40,8 +40,6 @@ class _GoLiveState extends State<GoLive> {
           ),
         ),
       );
-    } else {
-      showSnackBar(context, 'error');
     }
   }
 
