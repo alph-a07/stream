@@ -9,6 +9,7 @@ import 'package:stream/providers/user_provider.dart';
 
 import '../config/appId.dart';
 import '../database/firestore_methods.dart';
+import '../widgets/chat.dart';
 import 'home.dart';
 
 class Stream extends StatefulWidget {
@@ -92,20 +93,38 @@ class _StreamState extends State<Stream> {
   Widget build(BuildContext context) {
     final provider = Provider.of<UserProvider>(context).user;
 
-    return WillPopScope(
-      onWillPop: () async {
-        await _leaveChannel();
-        return Future.value(true);
-      },
-      child: Scaffold(
-        body: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Column(
-            children: [
-              Container(
-                child: _renderVideo(provider),
-              )
-            ],
+    return SafeArea(
+      child: WillPopScope(
+        onWillPop: () async {
+          await _leaveChannel();
+          return Future.value(true);
+        },
+        child: Scaffold(
+          body: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              children: [
+                Container(
+                  child: _renderVideo(provider),
+                ),
+                if ("${provider.uid}${provider.username}" == widget.channelId)
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      InkWell(
+                        onTap: _switchCamera,
+                        child: const Text('Switch Camera'),
+                      ),
+                      InkWell(
+                        onTap: onToggleMute,
+                        child: Text(isMuted ? 'Unmute' : 'Mute'),
+                      ),
+                    ],
+                  ),
+                Expanded(child: Chat(channelId: widget.channelId)),
+              ],
+            ),
           ),
         ),
       ),
@@ -137,5 +156,22 @@ class _StreamState extends State<Stream> {
       await FirestoreMethods().updateViewCount(widget.channelId, false);
     }
     Navigator.pushReplacementNamed(context, Home.route);
+  }
+
+  void _switchCamera() {
+    _engine.switchCamera().then((value) {
+      setState(() {
+        switchCamera = !switchCamera;
+      });
+    }).catchError((err) {
+      debugPrint('switchCamera $err');
+    });
+  }
+
+  void onToggleMute() async {
+    setState(() {
+      isMuted = !isMuted;
+    });
+    await _engine.muteLocalAudioStream(isMuted);
   }
 }

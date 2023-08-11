@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:stream/database/storage_methods.dart';
+import 'package:uuid/uuid.dart';
 
 import '../models/live_stream.dart';
 import '../providers/user_provider.dart';
@@ -78,10 +79,10 @@ class FirestoreMethods {
               ((snap.docs[i].data()! as dynamic)['commentId']),
             )
             .delete();
-
-        showSnackBar(context, 'Live stream has ended!');
       }
       await _firestore.collection('livestream').doc(channelId).delete();
+
+      showSnackBar(context, 'Live stream has ended!');
     } catch (e) {
       debugPrint(e.toString());
     }
@@ -94,6 +95,23 @@ class FirestoreMethods {
       });
     } catch (e) {
       debugPrint(e.toString());
+    }
+  }
+
+  Future<void> chat(String text, String channelId, BuildContext context) async {
+    final user = Provider.of<UserProvider>(context, listen: false);
+
+    try {
+      String commentId = const Uuid().v1();
+      await _firestore.collection('livestream').doc(channelId).collection('comments').doc(commentId).set({
+        'username': user.user.username,
+        'message': text,
+        'uid': user.user.uid,
+        'createdAt': DateTime.now(),
+        'commentId': commentId,
+      });
+    } on FirebaseException catch (e) {
+      showSnackBar(context, e.message!);
     }
   }
 }
